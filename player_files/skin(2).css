@@ -1,0 +1,116 @@
+:root{
+	--domainColor:#09A8C5;
+	--domainColorLight:#D2EEF2;
+}
+
+/* Procédure */
+body.procedure{
+	--domainColor:#FFC20D;
+	--domainColorLight:#FEF7CE;
+}
+
+/* Exercice */
+body.exercise{
+	--domainColor:#00E6DD;
+	--domainColorLight:#00E6DD26;
+}
+
+/* Média Enrichi */
+body.richStream{
+	--domainColor:#7755F5;
+	--domainColorLight:#EDE1FF;
+}
+
+/* ===== Skin Présentiel ===== */
+body.slideshow {
+	background-color: #f7f7f7;
+	font-size: 1.3em;
+}
+
+body.slideshow #root::after {
+    content: none;
+}
+
+body.slideshow #header{
+	background-color: #fff;
+	box-shadow:none;
+	height: 170px;
+}
+body.slideshow #header .inline{
+	max-width: 100%;
+	box-sizing: border-box;
+	padding-right: 0;
+}
+body.slideshow #header h1{
+	font-weight: 300;
+	font-size: 2em;
+}
+body.slideshow #header .inline .rootLnk{
+	background-image: url("img/logo_sld.svg");
+}
+body.slideshow #tplBtnNav{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	font-size: 1.3em;
+	z-index: 999;
+	flex: 0 0 287px;
+}
+body.slideshow .tplNavOpened #tplBtnNav::after{
+	border: none;
+	padding: 0;
+}
+body.slideshow #tplBtnNav span{
+	position: static;
+}
+body.slideshow #toc{
+	top: 0;
+    border-left: 13px solid #09A8C5;
+    padding-top: 170px;
+    right: 0;
+    bottom: 32px;
+	padding-left: 10px;
+}
+
+body.slideshow .tocContent ul a {
+    border-bottom: 1px solid #E6E6E6;
+}
+
+body.slideshow main{
+	margin: 200px auto 0;
+}
+
+body.slideshow main #content {
+    padding: 0 5em;
+}
+
+body.slideshow #content > section > *{
+	max-width: 100%;
+}
+
+body.slideshow a.btnNext, body.slideshow a.btnPrevious {
+	position: fixed;
+	top: 50%;
+    transform: translateY(-50%);
+	color: #fff;
+	background-color: var(--domainColor);
+	font-size: 2em;
+    line-height: 50px;
+    width: 50px;
+	border-radius: 0;
+}
+body.slideshow a.btnPrevious {
+    left:0;
+}
+body.slideshow a.btnNext {
+    right:0;
+}
+
+body.slideshow a.btnNext:hover, body.slideshow a.btnPrevious:hover {
+    background-color: #d8c50d;
+    border-color: #d8c50d;
+}
+
+body.slideshow footer{
+	background:linear-gradient(to right, #E4C200 0, #E4C200 100px, #09A8C5 100px, #09A8C5 200px, #00E6DD 200px, #00E6DD 300px, #FFC20D 300px, #FFC20D 400px, #E4C200 400px, #E4C200 100%);
+}

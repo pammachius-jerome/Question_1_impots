@@ -1,0 +1,88 @@
+/* keyMap */
+var keyMap = {
+	fNextPath : "des:a.btnNext|a.btnStart",
+	fPrevPath : "des:a.btnPrevious",
+
+	fKeyMap : {next:"key_right",
+	           previous:"key_left"},
+
+	fEnableGotoNext : true,
+
+	init : function(){
+		scCoLib.util.log("keyMap.init");
+		var vKeyMap = this;
+		//Init Listeners
+		this.fKeyMap = keyMap.xProcessKeyMap(keyMap.fKeyMap);
+		this.fListeners = {};
+		this.fListeners['onKeyPress'] = new Array();
+		if(scCoLib.isIE) document.body.attachEvent("onkeyup", function(){keyMap.sOnKeyUp(window.event,vKeyMap)});
+		else window.addEventListener("keyup", function(pEvt){keyMap.sOnKeyUp(pEvt,vKeyMap)},true);
+	},
+	/** keyMap.xKeyMgr */
+	xKeyMgr : function(pCharCode){
+		//scCoLib.util.log("keyMap.xKeyMgr: "+pCharCode);
+		this.xNotifyListeners("onKeyPress", pCharCode);
+		var vInputs = scPaLib.findNodes("des:input|textarea");
+		var vAction;
+		try{
+			vAction = this.fKeyMap[String(pCharCode)];
+		} catch(e){};
+		if (!vAction) return false;
+		switch(vAction){
+			case "next":
+				if(vInputs) for (var i = 0; i < vInputs.length; i++) if(vInputs[i] == document.activeElement) return;
+				var vNextBtn = scPaLib.findNode(keyMap.fNextPath);
+				if(vNextBtn && keyMap.fEnableGotoNext) {
+					if(vNextBtn.click) vNextBtn.click();
+					else window.location.href=vNextBtn.href;
+				}
+				return false;
+			case "previous":
+				if(vInputs) for (var i = 0; i < vInputs.length; i++) if(vInputs[i] == document.activeElement) return;
+				var vPrevBtn = scPaLib.findNode(keyMap.fPrevPath);
+				if(vPrevBtn) {
+					if(vPrevBtn.click) vPrevBtn.click();
+					else window.location.href=vPrevBtn.href;
+				}
+				return false;
+		}
+	},
+	/** keyMap.xNotifyListeners - calls all the listeners of a given type. */
+	xNotifyListeners : function(pType,pRes) {
+		//scCoLib.util.log("keyMap.xNotifyListeners: "+pType);
+		var vListener = this.fListeners[pType];
+		for (i in vListener) {
+			try {
+				vListener[i](pRes);
+			} catch(e) {scCoLib.util.logError("ERROR keyMap.xNotifyListeners",e);}
+		}
+	},
+	xProcessKeyMap: function(pMap) {
+		var i, vAction, vKeys, vKey;
+		var vMap = {};
+		var xKeyCode = function (pStr){
+			if (!pStr || pStr.length == 0) return 0;
+			switch(pStr){
+				case "key_right" : return 39;
+				case "key_left" : return 37;
+				default: return pStr.toUpperCase().charCodeAt(0);
+			}
+		}
+		for (vAction in pMap) {
+			vKeys = pMap[vAction];
+			if (typeof vKeys == "object"){
+				for (i = 0; i < vKeys.length; i++){
+					vMap[String(xKeyCode(vKeys[i]))] = vAction;
+				}
+			} else vMap[String(xKeyCode(vKeys))] = vAction;
+		}
+		return vMap;
+	},
+	sOnKeyUp : function(pEvt, pMgr){
+		var vEvt = pEvt || window.event;
+		var vCharCode = vEvt.which || vEvt.keyCode;
+		return pMgr.xKeyMgr(vCharCode);
+	},
+	
+	loadSortKey : "zKeyMap"
+}

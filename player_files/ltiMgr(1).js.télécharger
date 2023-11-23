@@ -1,0 +1,76 @@
+
+ltiMgr = {
+    fLtiConnectionId : null,
+
+    fLtiReturnUrl : null,
+
+    fPath : null,
+
+    fBC : null,
+    
+    CONFIG : {
+    	ltiSessionUrl : null
+    },
+
+	/**
+	 * Configuration de l'engine, pConfig :
+	 * {
+	 * 	ltiSessionUrl : "..."
+	 * }
+	 */
+	setConfig : function(pConfig) {
+		this.CONFIG = pConfig;
+	},
+
+	getLtiParams : function(pParams, cb){
+		var req = io.openHttpRequest(this.CONFIG.ltiSessionUrl + "?cdaction=GetLtiParam"+(ltiMgr.fLtiConnectionId?"&param="+ltiMgr.fLtiConnectionId:"")+"&ltiParams="+encodeURIComponent(JSON.stringify(pParams)));
+		req.onload = function(){cb.call(null, req)};
+		req.send();
+	},
+
+    onSessionLoaded : function(pParams){
+        if(pParams && pParams.ltiConnectionId) ltiMgr.fLtiConnectionId = pParams.ltiConnectionId;
+
+        var vEndReq = io.openHttpRequest(this.CONFIG.ltiSessionUrl + "?cdaction=GetReturnUrl"+(ltiMgr.fLtiConnectionId?"&param="+ltiMgr.fLtiConnectionId:""));
+        vEndReq.onload = function(){
+            ltiMgr.fLtiReturnUrl = JSON.parse(vEndReq.response)['launch_presentation_return_url'];
+        };
+        vEndReq.send();
+
+        try{ //API non supportés par vieux navigateurs.
+            ltiMgr.fBC = new BroadcastChannel("distribChannel");
+
+
+            if(pParams && pParams.warn)
+                if(pParams.warn == "previousSessionClosed")         ltiMgr.fBC.postMessage({"reloadWarning":"all:projects"});
+                else if(pParams.warn == "previousConnectionClosed") ltiMgr.fBC.postMessage({"reloadWarning":ltiMgr.fLtiConnectionId});
+
+
+            ltiMgr.fBC.onmessage = function(pEvent){
+                if(pEvent.data.reloadWarning == "all:projects" || pEvent.data.reloadWarning == ltiMgr.fLtiConnectionId)
+                    showArea(sc$("reloadWarning"));
+            }
+        }
+        catch (pError){}
+    },
+
+	endLtiSession : function(){
+		distribEngine.setMainDepotPath(null);
+		distribEngine.logout();
+	},
+	onEngineEvent : function(pEvent){
+		if(pEvent.type == "logoutDone") window.location = this.fLtiReturnUrl;
+	},
+	cbError : function(pEvt){
+		if(!ltiMgr.fAlertSent) {
+			ltiMgr.fAlertSent = true;
+			var vAlertMsg;
+			if(pEvt.target.status == 403) vAlertMsg = "Votre session n'est plus active. Veuillez recharger l'activité.";
+			else vAlertMsg = "Le serveur rencontre une erreur. Veuillez recharger l'activité.";
+			window.alert(vAlertMsg);
+			window.location = ltiMgr.fLtiReturnUrl;
+		}
+	}
+};
+
+distribEngine.addEngineListener(ltiMgr);

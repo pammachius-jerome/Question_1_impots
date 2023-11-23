@@ -1,0 +1,49 @@
+var frameMgr = scOnLoads[scOnLoads.length] = {
+	
+	// le chargement doit s'effectuer après celui des scOnLoads de remoteVideo.transf et remoteInteractive.transf
+	loadSortKey: "ZZZZZZ",
+
+	fFrames: [],
+
+	onLoad: function() {
+		frameMgr.fFrames.forEach(function(pFrame, pIndex) {
+			//on part du principe que toutes les ressources distantes viennent du même serveur (on réaffiche N fois la même subWindow)
+			//TODO gérer le cas où le user n'a pas les droits en lecture sur certaines ressources ou ferme la sur-fenêtre
+			fetch(io.appendParamsToUrl(pFrame.fUrl, "noAuth"), {"method": "HEAD", "credentials":"include"}).then(function(pRespNoAuth) {
+				//credentials nécessaires pour que le Set-cookie soit traité
+				if(pRespNoAuth.status == 403) {
+					window.addEventListener("message", (e) => {
+						if(e.data.cidAuth == "succeeded") window.location.reload();
+					});
+					fetch(pFrame.fUrl, {"method": "HEAD"}).then(function(pRespAuth) {
+						if(pRespAuth.redirected) scDynUiMgr.displaySubWindow(document.body, pRespAuth.url.split("?")[0] + "?cid=true", "remoteResConnect", {"SUBWINTI":"Cette ressource nécessite une authentification"});
+						else frameMgr.errorHandler(null, pFrame.fUrl);
+					}).catch(frameMgr.errorHandler);
+				} else if(pRespNoAuth.ok) frameMgr.loadFrame(pFrame, pIndex);
+				else frameMgr.errorHandler(null, pFrame.fUrl);
+			}).catch(function(e) {
+				frameMgr.errorHandler(e, pFrame.fUrl);
+				//on charge quand même la vidéo pour les cas particuliers (ex : url publique mais bloquée par les CORS)
+				frameMgr.loadFrame(pFrame, pIndex);
+			});
+		});
+	},
+
+	loadFrame(pFrame, pIndex) {
+		setTimeout(function() {
+			pFrame.fFrameElt.src = pFrame.fUrl;
+		}, pIndex*500);
+	},
+
+	errorHandler(pError, pUrl) {
+		if(pUrl) console.error("Unable to load: " + pUrl);
+		console.error("Cause: " + (pError || "unknown error"));
+	},
+
+	registerFrame(pFrameElt, pUrl) {
+		frameMgr.fFrames.push({
+			fFrameElt: pFrameElt,
+			fUrl: pUrl
+		});
+	}
+};

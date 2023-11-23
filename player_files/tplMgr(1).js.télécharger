@@ -1,0 +1,121 @@
+var tplMgr = scOnLoads[scOnLoads.length] = {
+	fIsNavClose: true,
+
+    init: function() {
+		// Set SubWin callback functions.
+		if ("scDynUiMgr" in window) {
+			scDynUiMgr.subWindow.addOnLoadListener(tplMgr.sSubWinOpen);
+			scDynUiMgr.subWindow.addCloseListener(tplMgr.sSubWinClose);
+		}
+    },
+
+	toggleNav: function(){
+		if(this.fIsNavClose) {
+			sc$("root").classList.add("tplNavOpened");
+		} else {
+			sc$("root").classList.remove("tplNavOpened");
+		}
+		this.fIsNavClose = !this.fIsNavClose;		
+	},
+
+    onLoad : function(){		
+		// Add class to scroll
+		(function() {
+			window.addEventListener("scroll", function(pEvt){
+				var vBody = document.body;
+				var vScroll = window.scrollY || window.pageYOffset;
+				if (vScroll >= 200) {
+					vBody.classList.add("page_scrolled");
+				} else {
+					vBody.classList.remove("page_scrolled");
+				}
+			});
+		})();
+        tplMgr.fTplBtnNav = sc$("tplBtnNav");
+        tplMgr.fToc = sc$("toc");
+        if(tplMgr.fTplBtnNav && tplMgr.fToc) window.addEventListener("mousedown", function(e) {
+            if(tplMgr.fIsNavClose || e.target == tplMgr.fTplBtnNav || e.target == tplMgr.fToc || scPaLib.findNode("anc:nav/chi:div.tocContent", e.target)) return;
+            tplMgr.toggleNav();
+        });
+	},
+
+    buildNewModal: function(title, okCb, noCancel, noClose){
+        if(!sc$("root")) return;
+        var bd = dom.newBd(sc$("root"));
+            bd.elt("div", "modal")
+            .elt("div","background").up()
+            .elt("div", "content");
+        if(!noClose) bd.elt("button", "close").att("title", "Fermer").listen("click",tplMgr.closeModal).elt("span").text("Fermer").up().up();
+        if(title) bd.elt("div", "title").elt("span").text(title).up().up();
+        bd.elt("div", "inner");
+        bd.elt("div");
+        if(okCb) bd.elt("button", "modalBtn").text("OK").listen("click", function() {
+            tplMgr.closeModal();
+            okCb();
+        }).up();
+        if(!noCancel) bd.elt("button", "modalBtn").text("Annuler").listen("click", tplMgr.closeModal).up();
+    },
+
+    closeModal: function(event){
+        if(!sc$("root")) return;
+        var modal = scPaLib.findNode("chi:div.modal", sc$("root"));
+        if(modal) sc$("root").removeChild(modal);
+    },
+
+	/* === Event Handlers & lib override functions ============================== */
+	/** SubWin lib load callback : this = function */
+	sSubWinOpen: function(pFra) {
+		var vCo = scPaLib.findNode("ide:content", pFra.contentDocument),
+			vCloseBtn = scPaLib.findNode("des:.extra_x",pFra.parentNode.parentNode);
+		if (vCo) vCo.focus();
+		var vFocusOnCloseBtn = scPaLib.findNode("des:.focusOnCloseBtn",pFra.parentNode)?scPaLib.findNode("des:.focusOnCloseBtn",pFra.parentNode):tplMgr.addBtn(pFra.parentNode,"focusOnCloseBtn",">");
+		vFocusOnCloseBtn.onfocus=function(){vCloseBtn.focus();}
+	},
+	/** SubWin lib close callback : this = function */
+	sSubWinClose: function(pId) {
+		var vSubWin = scDynUiMgr.subWindow.fSubWins[pId];
+		if (vSubWin && vSubWin.fAnc) vSubWin.fAnc.focus();
+	},
+
+	/* === Utilities ============================================================ */
+	/** tplMgr.addBtn : Add a HTML button to a parent node. */
+	addBtn : function(pParent, pClassName, pCapt, pTitle, pNxtSib) {
+		var vBtn = scDynUiMgr.addElement("a", pParent, pClassName, pNxtSib);
+		vBtn.href = "#";
+		vBtn.target = "_self";
+		vBtn.setAttribute("role", "button");
+		//vBtn.setAttribute("tabindex", "0");
+		if (pTitle) vBtn.setAttribute("title", pTitle);
+		if (pCapt) vBtn.innerHTML = "<span>" + pCapt + "</span>"
+		vBtn.onkeydown=function(pEvent){scDynUiMgr.handleBtnKeyDwn(pEvent);}
+		vBtn.onkeyup=function(pEvent){scDynUiMgr.handleBtnKeyUp(pEvent);}
+		return vBtn;
+	}
+}
+
+/** ### ScSiRuleResize ######### */
+function ScSiRuleResize( pPathContainer, pResizeFunc) {
+    this.fPathContainer = pPathContainer;
+    this.xResizeFunc = pResizeFunc;
+    scOnLoads[scOnLoads.length] = this;
+}
+ScSiRuleResize.prototype.onResizedAnc = function(pOwnerNode, pEvent) {
+    if(pEvent.phase==1 || pEvent.resizedNode == pOwnerNode) return;
+    this.xResizeFunc();
+}
+ScSiRuleResize.prototype.onResizedDes = function(pOwnerNode, pEvent) {
+    if(pEvent.phase==1) return;
+    this.xResizeFunc();
+}
+ScSiRuleResize.prototype.xResizeFunc = function() {
+}
+ScSiRuleResize.prototype.onLoad = function() {
+try {
+    this.fContainer = scPaLib.findNode(this.fPathContainer, this.fNode);
+    if( ! this.fContainer) return;
+    scSiLib.addRule(this.fContainer, this);
+    this.xResizeFunc();
+} catch(e){alert(e);}
+}
+ScSiRuleResize.prototype.loadSortKey = "SiZZ";
+ScSiRuleResize.prototype.ruleSortKey = "ZZ";

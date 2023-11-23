@@ -1,0 +1,256 @@
+
+body {
+    color: #2e383a;
+    font-family: sans-serif;
+    font-size: 100%;
+	text-align:center;
+}
+
+.entete{
+	height: 85px;
+}
+
+
+h1 {
+    display: inline-block;
+    font-size: 1.9em;
+    font-weight: initial;
+	font-family: sans-serif;
+}
+
+h1.error {
+    border-bottom: medium none;
+    color: #e65a00;
+    font-family: sans-serif;
+}
+
+h1.error::before {
+	content:"";
+	display:inline-block;
+	width:113px;
+	height:132px;
+	vertical-align: middle;
+	margin-right:15px;
+}
+
+p, ul{
+	text-align:left;
+}
+
+ul{
+	list-style-type:circle;
+}
+
+tr {
+    background-color: #f7f6f3;
+}
+tr:nth-of-type(odd) {
+    background-color: #fff7ee;
+}
+td, th {
+    padding: 3px;
+}
+td {
+	text-align:left;
+}
+tr > td:first-child {
+    min-width: 300px;
+}
+
+
+body.player {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: 0;
+	font-family: sans-serif;
+	background:none;
+	height: 100%;
+}
+
+body.player h1 {
+	font-family:helvetica, sans-serif;
+	color:#2e383a;
+}
+
+#areas{
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+
+.toolbar {
+	background-color: #2e373a;
+	height: 50px;
+	position: fixed;
+	width: 100%;
+	z-index: 1;
+	top:0;
+	left:0;
+}
+
+#contentFrame {
+    border: medium none;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    top: 0;
+    width: 100%;
+}
+
+.dialog:not([hidden]){
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 100;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0,0,0,0.1);
+	padding: 10px;
+}
+
+.toolbar button[hidden="true"] {
+    display: none !important;
+}
+
+.dialog>*{
+	background-color: white;
+}
+
+.msgBox{
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-color: black;
+	color: white;
+	z-index:2;
+}
+
+.msgBox > div{
+	margin: 30% auto 0px;
+	width: 50%;
+	background-repeat: no-repeat;
+	padding-left: 70px;
+	min-height: 90px;
+}
+
+#stats h1 {
+    margin-top: 60px;
+}
+
+.toolbar button, .toolbar #downloadStats{
+	border: medium none;
+	cursor: pointer;
+	display: block;
+	height: 30px;
+	width: 30px;
+	position: absolute;
+	top:10px;
+}
+
+.toolbar button#btnBack {
+	background: rgba(0, 0, 0, 0) url("img/back.svg") no-repeat scroll 0 -30px / 30px auto;
+	left: 10px;
+}
+
+.toolbar button#btnHome {
+	background: rgba(0, 0, 0, 0) url("img/home.svg") no-repeat scroll 0 -30px / 30px auto;
+	left: 10px;
+}
+
+.toolbar button#btnEnd {
+	background: rgba(0, 0, 0, 0) url("img/end.svg") no-repeat scroll 0 -30px / 30px auto;
+	right: 10px;
+}
+
+.toolbar #downloadStats{
+	background: rgba(0, 0, 0, 0) url("img/download.svg") no-repeat scroll 0 -30px / 30px auto;
+	left:50px;
+}
+
+.toolbar button#btnStat{
+	background: rgba(0, 0, 0, 0) url("img/result.svg") no-repeat scroll 0 -30px / 30px auto;
+	left:50px;
+}
+
+.toolbar button:hover, .toolbar #downloadStats:hover {
+	background-position: 0 0 !important;
+}
+
+.toolbar button > span, .toolbar #downloadStats > span{
+	display:none;
+}
+
+#statPannel{
+	text-align:left;
+	margin-left:1em;
+}
+
+#statPannel .block {
+    margin: 1em 0;
+}
+
+#statPannel .block_ti, #statPannel .collapse .block_ti a{
+    color: #e65a00;
+    font-size: 1.3em;
+    font-weight: bold;
+	text-transform:uppercase;
+	display:inline-block;
+	margin-bottom: 0.5em;
+	text-decoration:none;
+}
+
+#statPannel .collapse .block_ti a::before{
+    content:"";
+	display:inline-block;
+	width:17px;
+	height:17px;
+	margin-right:5px;
+}
+#statPannel .collapse .block_ti.close a::before{
+	background:url("img/more.svg") no-repeat center center/17px auto;
+}
+#statPannel .collapse .block_ti.open a::before{
+	background:url("img/less.svg") no-repeat center center/17px auto;
+}
+#statPannel .collapse .block_co {
+    padding-left: 1em;
+}
+
+#statPannel button {
+    background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
+    border: medium none;
+    cursor: pointer;
+    padding: 2px;
+    text-decoration: underline;
+}
+
+.learner {
+    max-width: 70px;
+}
+.learner > button {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.score{
+	text-align:right;
+}
+
+.highScore {
+    color: #3fa757;
+}
+
+.lowScore {
+    color: #f7464a;
+}

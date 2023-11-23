@@ -1,0 +1,16 @@
+/*const options = {
+    containers: ["#main"],
+    linkSelector: '.hasCarousel .navLinks a, .hasCarousel nav.carousel ul a, a.btnHome, .home #toc ul a',
+    plugins: [new SwupSlideTheme({
+        mainElement: [".carousel + .part"],
+        reversed: true
+    }), new SwupBodyClassPlugin(), new SwupScrollPlugin()]
+};
+    
+const swup= new Swup(options);*/
+
+scOnLoads[scOnLoads.length] = {
+	onLoad : function() {
+        ScrollReveal().reveal('.carousel + .part')
+	}
+};

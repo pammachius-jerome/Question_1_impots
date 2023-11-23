@@ -1,0 +1,15 @@
+scOnLoads[scOnLoads.length] = {
+	onLoad : function() {
+        ScrollReveal().reveal('#content > section')
+	}
+};
+
+/* ajout label derrière inputs pour stylage*/
+try{
+	var vInputs=scPaLib.findNodes("des:input");
+	for (i = 0; i < vInputs.length; i++) {
+		var vLabel = document.createElement("label");
+		vLabel.setAttribute("for", vInputs[i].id);
+		vInputs[i].parentNode.appendChild(vLabel);
+	}
+}catch(e){}

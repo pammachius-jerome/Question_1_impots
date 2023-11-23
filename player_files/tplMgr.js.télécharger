@@ -1,0 +1,220 @@
+/* === xGuidances template manager =============================================== */
+var tplMgr = scOnLoads[scOnLoads.length] = {
+	
+	fIsNavClose: true,
+	fCbkInit : true,
+	fCbkClosedPath : "des:.cbkClosed",
+	fCbkOpenPath : "des:.cbkOpen",
+	// BEGIN - FROM CANOPROF/MEO
+	fPageOutlinePath : "ide:localOutline",
+	fHeaderPath : "ide:header",
+	fContentPath : "bod:",
+	fPageOutlineAnchors : [],
+	fPageOutlineTargets : [],
+	fScrollTicking : false,
+	fScrollPos : 0,
+	fListeners : {scrollPage:[]},
+	// END - FROM CANOPROF/MEO
+
+
+	toggleNav: function(){
+		var vBody = document.body;
+		if(this.fIsNavClose) {
+			vBody.classList.add("tplNavOpened");
+			tplMgr.fireEvent("tplNavOpened");
+		} else {
+			vBody.classList.remove("tplNavOpened");
+			tplMgr.fireEvent("tplNavClosed");
+		}
+		this.fIsNavClose = !this.fIsNavClose;		
+	},
+	
+	toggleForum : function(pEvent){
+		sc$("main").classList.toggle("hideForum");
+		sc$("toggleForum").classList.toggle("btnActive");
+	},
+	
+	onLoad : function(){
+		//sc$("toggleForum").onclick = tplMgr.toggleForum;
+		
+		// Add class to scroll
+		(function() {
+			window.addEventListener("scroll", function(pEvt){
+				var vBody = document.body;
+				var vScroll = window.scrollY || window.pageYOffset;;
+				if (vScroll >= 200) {
+					vBody.classList.add("page_scrolled");
+				} else {
+					vBody.classList.remove("page_scrolled");
+				}
+			});
+		})();
+
+	},
+
+	// FROM CANOPROF/MEO
+	updatePageOutline : function(pTarget){
+		//scCoLib.log("updatePageOutline");
+		var vTarget = null, vTargetOffset = null, vTargetHeight = null;
+		if (this.fPageOutlineTargets.length==0) return;
+		if (pTarget && pTarget.fAnchor) vTarget = pTarget;
+		else{
+			var vContentHeight = this.fContent.clientHeight;
+			for (var i=0; i<this.fPageOutlineTargets.length; i++){
+				vTarget = this.fPageOutlineTargets[i];
+				vTargetOffset = this.xGetOffsetTop(vTarget, this.fContent);
+				vNextTargetOffset = (i < this.fPageOutlineTargets.length-1) ? this.xGetOffsetTop(this.fPageOutlineTargets[i+1], this.fContent) : null;
+				vTargetHeight = vTarget.offsetHeight;
+				if(vTargetOffset >= this.fScrollPos && vTargetOffset - this.fScrollPos < vContentHeight-vTargetHeight) break;
+				else if(vNextTargetOffset && vNextTargetOffset > vContentHeight + this.fScrollPos) break;
+			}
+		}
+		for (var i=0; i<this.fPageOutlineAnchors.length; i++) this.xSwitchClass(this.fPageOutlineAnchors[i], "currentSection_yes", "currentSection_no", true);
+		this.xSwitchClass(vTarget.fAnchor, "currentSection_no", "currentSection_yes", true);
+		//window.location = scCoLib.hrefBase() + "#" + vTarget.id;
+	},
+		
+	init : function(){
+		try{
+			scPaLib.findNodes('des:div.stack/des:a.siblingEntries_source').forEach(function(pSiblingEntries) {
+				var vTooltipId = scPaLib.findNode('nsi:div.siblingEntries_target', pSiblingEntries).getAttribute("id");
+				scTooltipMgr.registerTooltip(pSiblingEntries.getAttribute("id"),vTooltipId,"onclick",(vTooltipId=="activityEntries_target")?"activityEntries_tt siblingEntries_tt":"siblingEntries_tt","",{PARENT:sc$("header"),NOREF:true,STICKY:true,FIXTYPE:"node",FIXFORCE:true,FIX:[0,0],HPOS:"leftAlign",VPOS:"belowElement",CLSBTN:false,DELAY:0});
+			}, this);
+			
+			// BEGIN - FROM CANOPROF/MEO
+			this.fHeader = scPaLib.findNode(this.fHeaderPath);
+			this.fContent = scPaLib.findNode(this.fContentPath);
+			window.addEventListener("scroll", function(pEvt){
+				tplMgr.fScrollPos = window.scrollY || window.pageYOffset;
+				if (!tplMgr.fScrollTicking){
+					window.requestAnimationFrame(function() {
+						tplMgr.fireEvent("scrollPage");
+						tplMgr.fScrollTicking = false;
+					});
+				}
+				tplMgr.fScrollTicking = true;
+			});
+
+			// Close collapsable blocks that are closed by default.
+			if (this.fCbkInit){
+				var vHash = window.location.hash;
+				var vCbks = scPaLib.findNodes(this.fCbkClosedPath);
+				for (var i=0; i<vCbks.length; i++) {
+					if (!vHash || vHash && vHash != scPaLib.findNode("chi:", vCbks[i]).id) {
+						var vTgl = scPaLib.findNode("des:a", vCbks[i]);
+						if (vTgl) vTgl.onclick();
+					}
+				}
+				vCbks = scPaLib.findNodes(this.fCbkOpenPath);
+				for (var i=0; i<vCbks.length; i++) {
+					var vTgl = scPaLib.findNode("des:a", vCbks[i]);
+					if (vTgl) vTgl.title = tplMgr.fStrings[0].replace("%s", (vTgl.innerText ? vTgl.innerText: vTgl.textContent));
+				}
+			}
+
+			// Init page outline
+			var vPageOutline = scPaLib.findNode(this.fPageOutlinePath);
+			if (vPageOutline){
+				this.fPageOutlineAnchors = scPaLib.findNodes("des:a", vPageOutline);
+				for (var i=0; i<this.fPageOutlineAnchors.length; i++) {
+					var vPageOutlineAnchor = this.fPageOutlineAnchors[i];
+					var vTarget = sc$(vPageOutlineAnchor.hash.substring(1));
+					vTarget.fAnchor = vPageOutlineAnchor;
+					this.fPageOutlineTargets.push(vTarget);
+
+					// Init Anchor scroll
+					vPageOutlineAnchor.onclick = function (){
+						var vAnchor = sc$(this.hash.substring(1));
+						window.setTimeout(function(pAnchor){tplMgr.scrollTo(pAnchor)}, 10, vAnchor);
+					}
+				}
+				this.registerListener("scrollPage", function(){tplMgr.updatePageOutline();});
+				this.updatePageOutline();
+			}
+
+			// HASH listener
+			window.addEventListener("hashchange", function(pEvt){
+				var vHash = window.location.hash;
+				if (vHash.length>0) vHash = vHash.substring(1);
+				//scCoLib.log("tplMgr.hashchange : "+vHash);
+				var vAnchor = sc$(vHash);
+				/*
+				if (vAnchor){
+					
+					var vAncCbks = scPaLib.findNodes("anc:.collBlk_closed", vAnchor);
+					for (var i=0; i< vAncCbks.length; i++){
+						vAncCbks[i].fTitle.onclick();
+					}
+					var vCurrBk = scPaLib.findNode("nsi:.collBlk_closed", vAnchor);
+					if (vCurrBk) vCurrBk.fTitle.onclick();
+					if (vAncCbks.length>0) window.location = window.location;
+				}
+				*/
+				tplMgr.updatePageOutline(vAnchor);
+			}, false);
+			// END - FROM CANOPROF/MEO
+
+			scDynUiMgr.subWindow.addOpenListener(function() {document.body.classList.add("subWinRes_open")});
+			scDynUiMgr.subWindow.addCloseListener(function() {document.body.classList.remove("subWinRes_open")});
+		} catch(e){scCoLib.log("ERROR tplMgr.init : "+e)}
+	},
+
+	registerListener : function(pListener, pFunc){
+		if (this.fListeners[pListener]) this.fListeners[pListener].push(pFunc);
+		else scCoLib.log("ERROR - tplMgr.registerListener - non-existent listener : " + pListener);
+	},
+
+	fireEvent : function(pListener, pParam){
+		if (this.fListeners[pListener]) for (var i=0; i< this.fListeners[pListener].length; i++) this.fListeners[pListener][i](pParam);
+		else scCoLib.log("ERROR - tplMgr.fireEvent - non-existent listener : " + pListener);
+	},
+
+	scrollTo : function(pAnchor) {
+		window.scrollTo(0, tplMgr.xGetOffsetTop(pAnchor, document.body) - tplMgr.fHeader.clientHeight);
+	},
+
+	/* === Utilities ============================================================ */
+	
+	/** tplMgr.xSwitchClass - replace a class name. */
+	xSwitchClass : function(pNode, pClassOld, pClassNew, pAddIfAbsent, pMatchExact) {
+		var vAddIfAbsent = typeof pAddIfAbsent == "undefined" ? false : pAddIfAbsent;
+		var vMatchExact = typeof pMatchExact == "undefined" ? true : pMatchExact;
+		var vClassName = pNode.className;
+		var vReg = new RegExp("\\b"+pClassNew+"\\b");
+		if (vMatchExact && vClassName.match(vReg)) return;
+		var vClassFound = false;
+		if (pClassOld && pClassOld != "") {
+			if (vClassName.indexOf(pClassOld)==-1){
+				if (!vAddIfAbsent) return;
+				else if (pClassNew && pClassNew != '') pNode.className = vClassName + " " + pClassNew;
+			} else {
+				var vCurrentClasses = vClassName.split(' ');
+				var vNewClasses = new Array();
+				for (var i = 0, n = vCurrentClasses.length; i < n; i++) {
+					var vCurrentClass = vCurrentClasses[i];
+					if (vMatchExact && vCurrentClass != pClassOld || !vMatchExact && vCurrentClass.indexOf(pClassOld) != 0) {
+						vNewClasses.push(vCurrentClasses[i]);
+					} else {
+						if (pClassNew && pClassNew != '') vNewClasses.push(pClassNew);
+						vClassFound = true;
+					}
+				}
+				pNode.className = vNewClasses.join(' ');
+			}
+		}
+		return vClassFound;
+	},
+
+	xGetOffsetTop : function(pNode, pContainer) {
+		var vParent = pNode.offsetParent;
+		if(!vParent) return Number.NaN;
+		var vOffset = pNode.offsetTop;
+		while(vParent != pContainer) {
+			var vNewParent = vParent.offsetParent;
+			if(!vNewParent) return Number.NaN;
+			vOffset += vParent.offsetTop;
+			vParent = vNewParent;
+		}
+		return vOffset;
+	}
+};

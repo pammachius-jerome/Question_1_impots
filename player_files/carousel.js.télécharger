@@ -1,0 +1,65 @@
+var carousel = {
+
+	init: function() {
+		scOnLoads[scOnLoads.length] = this;
+	},
+
+	onLoad: function() {
+		var vUl = scPaLib.findNode("des:nav.carousel/chi:ul");
+		if(!vUl) return;
+		carousel.fPreviousBtn = scDynUiMgr.addElement("a", vUl.parentNode, "btnPrevious", vUl);
+		carousel.fPreviousBtn.setAttribute("href", "#");
+		carousel.fPreviousBtn.onclick = carousel.previous;
+		carousel.fNextBtn = scDynUiMgr.addElement("a", vUl.parentNode, "btnNext");
+		carousel.fNextBtn.setAttribute("href", "#");
+		carousel.fNextBtn.onclick = carousel.next;
+		carousel.fLis = scPaLib.findNodes("des:nav.carousel/des:li");
+		var vCurrLi = scPaLib.findNode("des:nav.carousel/des:.sel_yes/par:li");
+		carousel.fCurrIdx = carousel.fLis.indexOf(vCurrLi);
+
+		var vSteps = [0, 440, 540, 640, 1040, 1140, 1240];
+		for(var i=0; i<vSteps.length; i++) {
+			var vMinWidth = vSteps[i];
+			var vQuery = "(min-width: " + vMinWidth +"px)"
+			if(i<vSteps.length-1) {
+				var vMaxWidth = vSteps[i+1] - 1;
+				vQuery +=  " and (max-width: " + vMaxWidth + "px)"
+			}
+			// closures nécessaires pour préserver la valeur de vNb lors du traitement de l'event, sinon c'est sa dernière valeur dans la boucle qui est utilisée
+			(function(){
+				var vNb = 2+i;
+				var vMqList = window.matchMedia(vQuery);
+				if(vMqList.matches) carousel.setup(true, vNb);
+				vMqList.addEventListener("change", function(e) { if(e.matches) carousel.setup(true, vNb);});
+			}());
+		}
+	},
+
+	setup: function(pMinify, pNb) {
+		if(pMinify) carousel.fNb = Math.min(pNb, carousel.fLis.length);
+		else carousel.fNb = carousel.fLis.length;
+		var vStart = carousel.fCurrIdx > 0 ? carousel.fCurrIdx-1 : carousel.fCurrIdx;
+		if(carousel.fCurrIdx+carousel.fNb > carousel.fLis.length) vStart = carousel.fLis.length - carousel.fNb;
+		carousel.build(vStart, carousel.fNb == carousel.fLis.length);
+	},
+
+	build: function(pStart, pHideBtns) {
+		carousel.fLis.forEach((pLi) => {pLi.style.display="none"});
+		carousel.fLis.slice(pStart, pStart+carousel.fNb).forEach((pLi) => {pLi.style.display="initial"});
+		if(pStart+carousel.fNb >= carousel.fLis.length) carousel.fNextBtn.classList.add("disabledBtn");
+		else carousel.fNextBtn.classList.remove("disabledBtn");
+		if(pStart == 0) carousel.fPreviousBtn.classList.add("disabledBtn");
+		else carousel.fPreviousBtn.classList.remove("disabledBtn");
+		[carousel.fPreviousBtn, carousel.fNextBtn].forEach(function(pBtn) {pBtn.style.display = pHideBtns ? "none" : "initial";});
+	},
+
+	next: function() {
+		var vFirstShownLiIdx = carousel.fLis.findIndex((pLi) => {return pLi.style.display=="initial"});
+		carousel.build(vFirstShownLiIdx+1);
+	},
+
+	previous: function() {
+		var vFirstShownLiIdx = carousel.fLis.findIndex((pLi) => {return pLi.style.display=="initial"});
+		carousel.build(vFirstShownLiIdx-1);
+	}
+}

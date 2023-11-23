@@ -1,0 +1,22 @@
+var frameMgr = scOnLoads[scOnLoads.length] = {
+	
+	// le chargement doit s'effectuer après celui des scOnLoads de remoteVideo.transf et remoteInteractive.transf
+	loadSortKey: "ZZZZZZ",
+
+	fFrames: [],
+
+	onLoad: function() {
+		frameMgr.fFrames.forEach(function(pFrame, pIndex) {
+			setTimeout(function() {
+				pFrame.fFrameElt.src = pFrame.fUrl;
+			}, pIndex*500);
+		});
+	},
+
+	registerFrame(pFrameElt, pUrl) {
+		frameMgr.fFrames.push({
+			fFrameElt: pFrameElt,
+			fUrl: pUrl
+		});
+	}
+};

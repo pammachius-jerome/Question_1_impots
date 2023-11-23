@@ -1,0 +1,23 @@
+var metisToolsMgr = scOnLoads[scOnLoads.length] = {
+	onLoad : function(){
+		if("ltiMgr" in window.parent){
+			var tools = {};
+			scPaLib.findNodes("des:span.metisTools").forEach(function(node){
+				var toolId = "custom_tool_"+node.getAttribute("data-id");
+				if(tools[toolId]) tools[toolId].push(node);
+				else tools[toolId] = [node];
+			})
+			window.parent.ltiMgr.getLtiParams(Object.keys(tools), function(xhr){
+				var resp = xhr.status == 200 ? JSON.parse(xhr.responseText) : {}
+				for (var key in tools){
+					if (resp[key]) tools[key].forEach(function(toolInstance) {
+						toolInstance.outerHTML = "<a class='metisToolsLnk' href='"+ resp[key]+"' target='_blank'>"+toolInstance.outerHTML+"</a>";
+					});
+					else tools[key].forEach(function(toolInstance) {
+						toolInstance.classList.add("notFound");
+					});
+				}
+			});
+		}
+	}
+}
