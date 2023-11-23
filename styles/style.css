@@ -1,0 +1,6 @@
+.drapeau {
+    background-image: linear-gradient(90deg, green 0%, green 33%, blue 33%, blue 66%, red 66%, red 100%);
+    width: 100px;
+    height: 50px;
+}
+
