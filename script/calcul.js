@@ -20,3 +20,5 @@ function verifierImposition () {
 }
 // écoute du bouton de validation
 bouton.addEventListener("click", verifierImposition)
+
+// écoute réclamation
